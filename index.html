@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#2E7D68">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>הארכיון הביתי</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#F5F3EE;--card:#fff;--border:#E6E2D9;--t1:#2C2416;--t2:#8C8070;
+  --accent:#2E7D68;--accent-l:#2E7D6812;--hover:#EDEBE4;--input:#FAFAF7;
+  --danger:#D94444;--warn:#E8940A;--ok:#1E8E54;
+  --safe-top:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rubik',sans-serif;background:var(--bg);color:var(--t1);min-height:100vh;min-height:100dvh;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;-webkit-tap-highlight-color:transparent}
+input,select,textarea{font-family:inherit;outline:none}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#D0C9BD;border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+
+/* Layout */
+.header{position:sticky;top:0;z-index:20;background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.nav{display:flex;overflow-x:auto;gap:2px;padding:6px 12px;background:var(--card);border-bottom:1px solid var(--border);-webkit-overflow-scrolling:touch}
+.nav-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;white-space:nowrap;color:var(--t2);background:transparent;display:flex;align-items:center;gap:5px;position:relative}
+.nav-btn.active{background:var(--accent);color:#fff;font-weight:600}
+.nav-badge{position:absolute;top:2px;left:4px;background:var(--danger);color:#fff;border-radius:99px;font-size:9px;font-weight:700;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.content{padding:16px;max-width:700px;margin:0 auto}
+
+/* Components */
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:10px}
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:var(--hover);color:var(--t1);border:1px solid var(--border)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--t2);margin-bottom:4px}
+.form-input{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--input);font-size:13px;color:var(--t1)}
+.form-select{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--border);background:var(--input);font-size:13px;color:var(--t1);cursor:pointer}
+
+.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap}
+.stat{display:flex;flex-direction:column;gap:4px;flex:1;min-width:120px}
+.stat-value{font-size:22px;font-weight:700}
+.stat-label{font-size:11px;color:var(--t2)}
+
+.doc-row{display:flex;align-items:center;gap:10px;padding:11px 14px;border-radius:10px;background:var(--card);border:1px solid var(--border);margin-bottom:6px}
+.doc-icon{width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-title{font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.doc-meta{display:flex;gap:8px;margin-top:3px;font-size:11px;color:var(--t2);flex-wrap:wrap}
+.doc-actions{display:flex;gap:3px;flex-shrink:0}
+.doc-actions button{background:var(--hover);border-radius:7px;padding:6px;display:flex;color:var(--t2)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .15s ease}
+.modal{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;padding:20px;box-shadow:0 -10px 40px rgba(0,0,0,.15)}
+@media(min-width:600px){.modal{border-radius:16px;align-self:center;margin:20px}}
+
+/* Upload */
+.upload-area{display:flex;gap:8px}
+.upload-btn{flex:1;position:relative;overflow:hidden;border-radius:11px}
+.upload-btn input{position:absolute;top:0;left:0;width:100%;height:100%;opacity:.01;cursor:pointer;z-index:2;font-size:0}
+.upload-btn-inner{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:18px 12px;border-radius:11px;pointer-events:none}
+
+/* Toast */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);padding:10px 22px;border-radius:10px;font-size:13px;font-weight:500;color:#fff;z-index:999;animation:fadeIn .2s ease}
+
+/* Login */
+.login-box{background:var(--card);border-radius:20px;padding:36px;width:90%;max-width:400px;box-shadow:0 8px 40px rgba(0,0,0,.08);animation:fadeIn .4s ease}
+
+/* Payment status */
+.pay-btns{display:flex;gap:6px}
+.pay-btn{flex:1;padding:8px 4px;border-radius:8px;font-size:12px;font-weight:500;border:2px solid var(--border);background:transparent;color:var(--t2)}
+.pay-btn.active-paid{border-color:var(--ok);background:rgba(30,142,84,.08);color:var(--ok)}
+.pay-btn.active-pending{border-color:var(--warn);background:rgba(232,148,10,.08);color:var(--warn)}
+.pay-btn.active-overdue{border-color:var(--danger);background:rgba(217,68,68,.08);color:var(--danger)}
+
+/* Chart placeholder */
+.chart-container{width:100%;min-height:200px;display:flex;align-items:center;justify-content:center;color:var(--t2);font-size:13px}
+
+/* Fix 7: Accessibility focus states */
+button:focus-visible,.form-input:focus-visible,.form-select:focus-visible,.nav-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.pay-btn:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+
+/* Fix 4: Loading overlay */
+.loading-overlay{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:200;display:flex;align-items:center;justify-content:center}
+.loading-box{background:var(--card);border-radius:14px;padding:24px 32px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+.loading-spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 10px}
+
+/* Fix 6: Undo toast */
+.undo-toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#333;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:999;display:flex;align-items:center;gap:10px;animation:fadeIn .2s ease}
+.undo-toast button{background:var(--accent);color:#fff;padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600}
+
+/* Fix 2: Better contrast */
+.doc-meta{color:#6B5F50}
+
+/* Fix: Salary table scroll on mobile */
+.salary-detail{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.salary-row{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;min-width:420px;flex-wrap:nowrap}
+.salary-row span{white-space:nowrap}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<!-- Chart.js for charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+// ═══════════════════════════════════════════
+// FIREBASE CONFIG — REPLACE WITH YOUR VALUES
+// ═══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAcuLT19uv-5BBjR1xtb7q5eNZ1SCt9tnc",
+  authDomain: "document-organizer-935d1.firebaseapp.com",
+  projectId: "document-organizer-935d1",
+  storageBucket: "document-organizer-935d1.firebasestorage.app",
+  messagingSenderId: "761367524873",
+  appId: "1:761367524873:web:bb0c9cb79428d170f9aad8"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// ═══════════════════════════════════════════
+// CATEGORIES
+// ═══════════════════════════════════════════
+const CATS = {
+  salary:     {name:"תלוש משכורת",icon:"💰",color:"#2D9CDB",isIncome:true,
+    fields:[{k:"employer",l:"מעסיק",t:"text"},{k:"periodMonth",l:"חודש/שנה",t:"month"},{k:"grossSalary",l:"שכר ברוטו",t:"num"},{k:"netSalary",l:"שכר נטו",t:"num"},{k:"vacationDaysAccrued",l:"ימי חופשה שנצברו",t:"num"},{k:"vacationDaysUsed",l:"ימי חופשה שנוצלו",t:"num"},{k:"sickDays",l:"ימי מחלה שנותרו",t:"num"},{k:"pensionContrib",l:"הפרשה לפנסיה",t:"num"},{k:"taxDeducted",l:"ניכוי מס",t:"num"},{k:"overtime",l:"שעות נוספות",t:"num"},{k:"bonus",l:"בונוס/מענק",t:"num"}]},
+  electricity:{name:"חשבון חשמל",icon:"⚡",color:"#F2994A",
+    fields:[{k:"amount",l:"סכום לתשלום",t:"num"},{k:"dueDate",l:"תאריך אחרון",t:"date"},{k:"periodFrom",l:"תקופה מ-",t:"date"},{k:"periodTo",l:"עד",t:"date"},{k:"consumption",l:"צריכה (קוט״ש)",t:"num"},{k:"paid",l:"סטטוס תשלום",t:"pay"}]},
+  water:      {name:"חשבון מים",icon:"💧",color:"#56CCF2",
+    fields:[{k:"amount",l:"סכום",t:"num"},{k:"dueDate",l:"תאריך אחרון",t:"date"},{k:"periodFrom",l:"תקופה מ-",t:"date"},{k:"periodTo",l:"עד",t:"date"},{k:"consumption",l:'צריכה (מ"ק)',t:"num"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  gas:        {name:"חשבון גז",icon:"🔥",color:"#EB5757",
+    fields:[{k:"amount",l:"סכום",t:"num"},{k:"dueDate",l:"תאריך אחרון",t:"date"},{k:"periodFrom",l:"מ-",t:"date"},{k:"periodTo",l:"עד",t:"date"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  arnona:     {name:"ארנונה",icon:"🏠",color:"#9B51E0",
+    fields:[{k:"amount",l:"סכום",t:"num"},{k:"dueDate",l:"תאריך אחרון",t:"date"},{k:"periodFrom",l:"מ-",t:"date"},{k:"periodTo",l:"עד",t:"date"},{k:"propertyAddress",l:"כתובת",t:"text"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  internet:   {name:"אינטרנט/סלולר",icon:"📡",color:"#6FCF97",
+    fields:[{k:"provider",l:"ספק",t:"text"},{k:"planName",l:"מסלול",t:"text"},{k:"amount",l:"סכום",t:"num"},{k:"dueDate",l:"תאריך אחרון",t:"date"},{k:"periodFrom",l:"מ-",t:"date"},{k:"periodTo",l:"עד",t:"date"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  warranty:   {name:"תעודת אחריות",icon:"🛡️",color:"#F2C94C",
+    fields:[{k:"productName",l:"מוצר",t:"text"},{k:"purchaseDate",l:"תאריך רכישה",t:"date"},{k:"warrantyExpiry",l:"סיום אחריות",t:"date"},{k:"storeName",l:"חנות",t:"text"},{k:"serialNumber",l:"סריאלי",t:"text"},{k:"purchaseAmount",l:"סכום רכישה",t:"num"}]},
+  insurance:  {name:"ביטוח",icon:"📋",color:"#BB6BD9",
+    fields:[{k:"insuranceType",l:"סוג",t:"select",opts:["דירה","רכב","בריאות","חיים","נסיעות","אחר"]},{k:"insurer",l:"חברה",t:"text"},{k:"policyNumber",l:"מספר פוליסה",t:"text"},{k:"premium",l:"פרמיה",t:"num"},{k:"paymentFrequency",l:"תדירות",t:"select",opts:["חודשי","רבעוני","שנתי"]},{k:"renewalDate",l:"חידוש",t:"date"},{k:"policyStatus",l:"סטטוס",t:"select",opts:["פעיל","פג תוקף","בוטל"]}]},
+  tax:        {name:"מס/דוח שנתי",icon:"📊",color:"#27AE60",
+    fields:[{k:"taxYear",l:"שנת מס",t:"num"},{k:"docType",l:"סוג",t:"select",opts:["שומה","דוח שנתי","קבלה","אישור ניכוי מס","אחר"]},{k:"amountPaid",l:"ששולם",t:"num"},{k:"refundAmount",l:"החזר",t:"num"}]},
+  contract:   {name:"חוזה",icon:"📝",color:"#E07B39",
+    fields:[{k:"contractType",l:"סוג",t:"select",opts:["שכירות","עבודה","שירות","רכישה","אחר"]},{k:"parties",l:"צדדים",t:"text"},{k:"startDate",l:"התחלה",t:"date"},{k:"endDate",l:"סיום",t:"date"},{k:"monthlyAmount",l:"חודשי",t:"num"},{k:"totalAmount",l:"כולל",t:"num"}]},
+  medical:    {name:"רפואי",icon:"🏥",color:"#E25B5B",
+    fields:[{k:"medDocType",l:"סוג",t:"select",opts:["מרשם","הפניה","תוצאות בדיקה","חשבונית","אישור מחלה","אחר"]},{k:"providerName",l:"מוסד/רופא",t:"text"},{k:"amount",l:"סכום",t:"num"},{k:"validUntil",l:"תוקף עד",t:"date"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  education:  {name:"חינוך",icon:"🎓",color:"#2F80ED",
+    fields:[{k:"institution",l:"מוסד",t:"text"},{k:"eduDocType",l:"סוג",t:"select",opts:["תעודה","ציונים","שכ\"ל","אישור","אחר"]},{k:"amount",l:"סכום",t:"num"},{k:"academicYear",l:"שנה",t:"text"},{k:"paid",l:"סטטוס",t:"pay"}]},
+  other:      {name:"אחר",icon:"📁",color:"#828282",
+    fields:[{k:"amount",l:"סכום",t:"num"}]},
+};
+
+const MONTHS_HE = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+
+// ═══════════════════════════════════════════
+// VERSION & CHANGELOG
+// ═══════════════════════════════════════════
+const APP_VERSION = '1.3.2';
+const CHANGELOG = [
+  {ver:'1.3.2',date:'2026-05-08',changes:['AI model fallback: מנסה 3 מודלים אוטומטית (lite → flash → pro)','טיפול במכסת API: אם מודל אחד חסום עובר לבא']},
+  {ver:'1.3.1',date:'2026-05-08',changes:['תיקון התחברות: popup עם טיפול שגיאות','תיקון render אחרי login']},
+  {ver:'1.3.0',date:'2026-05-08',changes:['מעבר ל-Google Gemini AI (במקום Anthropic)','מפתח חינמי מ-Google AI Studio','תמיכה בסריקת תמונות ו-PDF','הודעות שגיאה מפורטות (מפתח חסר/שגוי/timeout/rate limit)']},
+  {ver:'1.2.0',date:'2026-05-07',changes:['טיפול שגיאות AI: timeout 30 שניות, הודעות ברורות','טבלאות משכורת: גלילה אופקית במובייל','קוד נקי יותר: הפרדת AI helpers']},
+  {ver:'1.1.0',date:'2026-05-07',changes:['תיקוני אבטחה: XSS sanitization','קוד שיתוף חזק יותר (12 תווים)','ולידציית קבצים (סוג + גודל)','Loading states בזמן AI/שמירה','ESC לסגירת חלונות, focus trap','Undo למחיקה (5 שניות)','Accessibility: aria-labels, keyboard nav','ולידציה: שדות חובה, סכומים חיוביים']},
+  {ver:'1.0.0',date:'2026-05-07',changes:['גרסה ראשונה','מערכת חשבונות + Google Auth','13 קטגוריות עם טפסים דינמיים','סריקת AI עם העלאת קבצים','מאזן חודשי הכנסות/הוצאות','סטטיסטיקות משכורת','התראות חכמות','שיתוף משפחתי']},
+];
+
+// ═══════════════════════════════════════════
+// SECURITY: HTML SANITIZE
+// ═══════════════════════════════════════════
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let State = {
+  user: null,
+  homeId: null,
+  homeName: null,
+  homeCode: null,
+  homeMembers: [],
+  shared: false,
+  docs: [],
+  view: 'dashboard',
+  unsubDocs: null,
+  pendingDelete: null, // {id, doc, timer} for undo
+};
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const genCode = () => { const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let r=''; for(let i=0;i<12;i++) r+=c[Math.floor(Math.random()*c.length)]; return r; };
+const ALLOWED_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/heic','image/heif','application/pdf'];
+const MAX_FILE_SIZE = 4.5 * 1024 * 1024;
+function validateFile(file) {
+  if (!file) return 'לא נבחר קובץ';
+  if (file.size > MAX_FILE_SIZE) return 'הקובץ גדול מדי (מקסימום 4.5MB)';
+  if (!ALLOWED_TYPES.includes(file.type)) return 'סוג קובץ לא נתמך. נתמכים: תמונות, PDF';
+  return null;
+}
+const fmtDate = iso => { if(!iso) return ''; const d=new Date(iso); return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`; };
+const daysUntil = iso => { if(!iso) return Infinity; const n=new Date();n.setHours(0,0,0,0); const t=new Date(iso);t.setHours(0,0,0,0); return Math.ceil((t-n)/864e5); };
+const fmtCur = n => { if(n==null||n===''||isNaN(n)) return ''; return new Intl.NumberFormat('he-IL',{style:'currency',currency:'ILS'}).format(Number(n)); };
+const getAmt = d => { const f=d.fields||{}; return Number(f.amount||f.netSalary||f.premium||f.monthlyAmount||f.purchaseAmount||f.amountPaid||0); };
+const isIncome = d => CATS[d.category]?.isIncome;
+const getIncomeAmt = d => d.category==='salary' ? Number(d.fields?.netSalary||0) : 0;
+const getExpenseAmt = d => isIncome(d) ? 0 : getAmt(d);
+
+function toast(msg, err=false) {
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.style.background = err ? 'var(--danger)' : 'var(--ok)';
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = () => rej();
+    r.readAsDataURL(file);
+  });
+}
+
+// ═══════════════════════════════════════════
+// AI — Gemini API (with timeout + error handling)
+// ═══════════════════════════════════════════
+const AI_TIMEOUT = 30000;
+const GEMINI_MODELS = ['gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash-001'];
+
+function fetchWithTimeout(url, opts, ms=AI_TIMEOUT) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, {...opts, signal: ctrl.signal}).finally(() => clearTimeout(timer));
+}
+
+function getGeminiKey() {
+  const key = localStorage.getItem('archive-ai-key');
+  if (!key) throw new Error('NO_KEY');
+  return key;
+}
+
+function handleAiError(e) {
+  if (e.message === 'NO_KEY') { toast('⚠️ יש להגדיר מפתח Gemini בהגדרות', true); return; }
+  if (e.name === 'AbortError') { toast('⏱️ timeout — נסה שוב', true); return; }
+  if (e.message?.includes('429') || e.message?.includes('quota')) { toast('⏳ מכסת AI נגמרה — נסה שוב בעוד דקה', true); return; }
+  if (e.message?.includes('400')) { toast('❌ בקשה לא תקינה — נסה קובץ אחר', true); return; }
+  if (e.message?.includes('401') || e.message?.includes('403') || e.message?.includes('API_KEY')) { toast('🔑 מפתח Gemini לא תקין', true); return; }
+  toast('❌ שגיאת AI — נסה שוב', true);
+}
+
+function buildGeminiParts(prompt, fileData) {
+  const parts = [];
+  if (fileData) {
+    parts.push({ inlineData: { mimeType: fileData.type, data: fileData.b64 } });
+  }
+  parts.push({ text: prompt });
+  return parts;
+}
+
+async function callGemini(prompt, fileData) {
+  const key = getGeminiKey();
+  let lastErr;
+  // Try models in order until one works
+  for (const model of GEMINI_MODELS) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
+      const r = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: buildGeminiParts(prompt, fileData) }],
+          generationConfig: { temperature: 0.1, maxOutputTokens: 1000 }
+        })
+      });
+      if (r.status === 429) { lastErr = new Error('429 quota'); continue; } // Try next model
+      if (!r.ok) { const err = await r.json().catch(()=>({})); throw new Error(err.error?.message || String(r.status)); }
+      const d = await r.json();
+      const text = d.candidates?.[0]?.content?.parts?.map(p=>p.text||'').join('') || '';
+      if (text) return text;
+    } catch(e) {
+      console.warn(`Model ${model} failed:`, e.message);
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('All models failed');
+}
+
+async function aiExtract(catId, docName, notes, fileData) {
+  const cat = CATS[catId]; if(!cat) return null;
+  const keys = cat.fields.map(f=>f.k).join(', ');
+  const prompt = `חלץ נתונים מהמסמך. שדות: ${keys}. שם: ${docName}. הערות: ${notes||'אין'}. החזר JSON בלבד (בלי backticks או טקסט נוסף). מספרים כ-numbers, תאריכים YYYY-MM-DD, null אם לא ידוע.`;
+  try {
+    const text = await callGemini(prompt, fileData);
+    return JSON.parse(text.replace(/```json|```/g,'').trim());
+  } catch(e) { console.error('AI:',e); handleAiError(e); return null; }
+}
+
+async function aiCategorize(docName, notes, fileData) {
+  const catList = Object.entries(CATS).map(([id,c])=>`${id}: ${c.name}`).join('\n');
+  const prompt = `סווג מסמך. שם: ${docName}. הערות: ${notes||'אין'}.\nקטגוריות:\n${catList}\nJSON בלבד (בלי backticks): {"category":"<id>","reason":"<סיבה>"}`;
+  try {
+    const text = await callGemini(prompt, fileData);
+    return JSON.parse(text.replace(/```json|```/g,'').trim());
+  } catch(e) { console.error('AI:',e); handleAiError(e); return null; }
+}
+
+async function testAiKey() {
+  showLoading('🧪 בודק מפתח...');
+  try {
+    const text = await callGemini('אמור "שלום" בלבד', null);
+    hideLoading();
+    if (text) toast('✅ המפתח עובד! תשובה: ' + text.slice(0,30));
+    else toast('❌ תשובה ריקה', true);
+  } catch(e) {
+    hideLoading();
+    handleAiError(e);
+  }
+}
+
+// ═══════════════════════════════════════════
+// FIREBASE DATA
+// ═══════════════════════════════════════════
+function getDocsRef() {
+  if (State.shared && State.homeId) return db.collection('homes').doc(State.homeId).collection('documents');
+  return db.collection('users').doc(State.user.uid).collection('documents');
+}
+
+function listenDocs() {
+  if (State.unsubDocs) State.unsubDocs();
+  State.unsubDocs = getDocsRef().orderBy('createdAt','desc').onSnapshot(snap => {
+    State.docs = snap.docs.map(d => ({id:d.id,...d.data()}));
+    render();
+  });
+}
+
+async function saveDoc(doc) {
+  const ref = getDocsRef();
+  if (doc.id) { await ref.doc(doc.id).set(doc); }
+  else { doc.createdAt = new Date().toISOString(); await ref.add(doc); }
+}
+
+async function deleteDoc(id) { await getDocsRef().doc(id).delete(); }
+
+function softDelete(id) {
+  const doc = State.docs.find(d=>d.id===id);
+  if (!doc) return;
+  // Remove from view immediately
+  if (State.pendingDelete?.timer) { clearTimeout(State.pendingDelete.timer); actualDelete(State.pendingDelete.id); }
+  State.pendingDelete = { id, doc, timer: setTimeout(()=>{ actualDelete(id); State.pendingDelete=null; hideUndo(); }, 5000) };
+  State.docs = State.docs.filter(d=>d.id!==id);
+  render();
+  showUndo(doc.name);
+}
+function actualDelete(id) { getDocsRef().doc(id).delete().catch(()=>{}); }
+function undoDelete() {
+  if (!State.pendingDelete) return;
+  clearTimeout(State.pendingDelete.timer);
+  const doc = State.pendingDelete.doc;
+  State.pendingDelete = null;
+  hideUndo();
+  saveDoc(doc);
+  toast('המסמך שוחזר');
+}
+function showUndo(name) {
+  hideUndo();
+  const el=document.createElement('div');el.className='undo-toast';el.id='undoToast';
+  el.innerHTML=`<span>${esc(name)} נמחק</span><button onclick="undoDelete()">ביטול</button>`;
+  document.body.appendChild(el);
+}
+function hideUndo() { document.getElementById('undoToast')?.remove(); }
+
+async function createSharedHome() {
+  const code = genCode();
+  const homeRef = await db.collection('homes').add({
+    name: `הבית של ${State.user.displayName||''}`,
+    code, members: [State.user.uid], createdBy: State.user.uid
+  });
+  await db.collection('users').doc(State.user.uid).set({homeId:homeRef.id},{merge:true});
+  State.homeId = homeRef.id; State.homeCode = code; State.shared = true;
+  State.homeName = `הבית של ${State.user.displayName||''}`;
+  State.homeMembers = [State.user.displayName||State.user.email];
+  // Copy personal docs to shared
+  const personalDocs = await db.collection('users').doc(State.user.uid).collection('documents').get();
+  const batch = db.batch();
+  personalDocs.docs.forEach(d => {
+    batch.set(db.collection('homes').doc(homeRef.id).collection('documents').doc(d.id), d.data());
+  });
+  await batch.commit();
+  listenDocs();
+  toast('בית משותף נוצר! קוד: ' + code);
+  render();
+}
+
+async function joinHome(code) {
+  if (!code) return;
+  const snap = await db.collection('homes').where('code','==',code.toUpperCase()).get();
+  if (snap.empty) { toast('קוד לא נמצא',true); return; }
+  const homeDoc = snap.docs[0];
+  const data = homeDoc.data();
+  await homeDoc.ref.update({members:firebase.firestore.FieldValue.arrayUnion(State.user.uid)});
+  await db.collection('users').doc(State.user.uid).set({homeId:homeDoc.id},{merge:true});
+  State.homeId = homeDoc.id; State.homeCode = data.code; State.shared = true;
+  State.homeName = data.name; State.homeMembers = data.members;
+  listenDocs();
+  toast('הצטרפת ל-' + data.name);
+  render();
+}
+
+async function leaveSharedHome() {
+  State.shared = false; State.homeId = null;
+  await db.collection('users').doc(State.user.uid).update({homeId:firebase.firestore.FieldValue.delete()});
+  listenDocs();
+  render();
+}
+
+async function loadUserHome() {
+  const userDoc = await db.collection('users').doc(State.user.uid).get();
+  if (userDoc.exists && userDoc.data().homeId) {
+    const homeId = userDoc.data().homeId;
+    const homeDoc = await db.collection('homes').doc(homeId).get();
+    if (homeDoc.exists) {
+      const data = homeDoc.data();
+      State.homeId = homeId; State.homeCode = data.code;
+      State.homeName = data.name; State.homeMembers = data.members;
+      State.shared = true;
+    }
+  }
+  listenDocs();
+}
+
+// ═══════════════════════════════════════════
+// COMPUTED
+// ═══════════════════════════════════════════
+function getAlerts() {
+  const a = [];
+  State.docs.forEach(d => {
+    const f = d.fields||{};
+    [[f.warrantyExpiry,'🛡️','אחריות',30],[f.endDate,'📝','חוזה',30],[f.renewalDate,'📋','ביטוח',30],[f.validUntil,'🏥','תוקף',14]].forEach(([dt,ic,tp,thr]) => {
+      if(dt){const dd=daysUntil(dt);if(dd>=0&&dd<=thr)a.push({days:dd,msg:`${ic} ${d.name} — ${dd} ימים`});}
+    });
+    if((f.paid==='pending'||f.paid==='overdue')&&f.dueDate){const dd=daysUntil(f.dueDate);if(dd<=7)a.push({days:dd,msg:`💳 ${d.name} — ${dd<0?'באיחור!':'עד '+fmtDate(f.dueDate)}`});}
+  });
+  return a.sort((a,b)=>a.days-b.days);
+}
+
+function getUnpaid() { return State.docs.filter(d=>{const p=d.fields?.paid;return p==='pending'||p==='overdue';}); }
+
+function getBalanceData() {
+  const m = {};
+  State.docs.forEach(d => {
+    const amt=getAmt(d); if(!amt||!d.date) return;
+    const dt=new Date(d.date);const k=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}`;
+    if(!m[k])m[k]={month:k,income:0,expense:0};
+    if(isIncome(d))m[k].income+=getIncomeAmt(d); else m[k].expense+=amt;
+  });
+  return Object.values(m).sort((a,b)=>a.month.localeCompare(b.month)).slice(-12)
+    .map(x=>({...x,balance:x.income-x.expense,label:MONTHS_HE[parseInt(x.month.split('-')[1])-1]}));
+}
+
+function getSalaryStats() {
+  const salaryDocs = State.docs.filter(d=>d.category==='salary').sort((a,b)=>(a.fields?.periodMonth||a.date||'').localeCompare(b.fields?.periodMonth||b.date||''));
+  const byYear = {};
+  salaryDocs.forEach(d => {
+    const f=d.fields||{};
+    const yr=f.periodMonth?f.periodMonth.split('-')[0]:(d.date?d.date.split('-')[0]:'????');
+    if(!byYear[yr])byYear[yr]={year:yr,count:0,totalGross:0,totalNet:0,totalTax:0,totalPension:0,totalBonus:0,months:[]};
+    const y=byYear[yr]; y.count++;
+    y.totalGross+=Number(f.grossSalary||0); y.totalNet+=Number(f.netSalary||0);
+    y.totalTax+=Number(f.taxDeducted||0); y.totalPension+=Number(f.pensionContrib||0);
+    y.totalBonus+=Number(f.bonus||0);
+    y.months.push({month:f.periodMonth||d.date,gross:Number(f.grossSalary||0),net:Number(f.netSalary||0),tax:Number(f.taxDeducted||0),vacation:Number(f.vacationDaysAccrued||0)-Number(f.vacationDaysUsed||0),sick:Number(f.sickDays||0)});
+  });
+  return Object.values(byYear).sort((a,b)=>b.year.localeCompare(a.year));
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function render() {
+  if (!State.user) { renderLogin(); return; }
+  const alerts = getAlerts();
+  const unpaid = getUnpaid();
+  const v = State.view;
+
+  let navHtml = [
+    {id:'dashboard',icon:'📊',label:'לוח בקרה',badge:alerts.length},
+    {id:'documents',icon:'📁',label:'מסמכים'},
+    {id:'balance',icon:'⚖️',label:'מאזן'},
+    {id:'salary',icon:'💰',label:'משכורות'},
+    {id:'unpaid',icon:'💳',label:'לתשלום',badge:unpaid.length},
+    {id:'settings',icon:'⚙️',label:'הגדרות'},
+  ].map(t=>`<button class="nav-btn ${v===t.id?'active':''}" onclick="showView('${t.id}')" role="tab" aria-selected="${v===t.id}" aria-label="${t.label}">${t.icon} ${t.label}${t.badge?`<span class="nav-badge" aria-label="${t.badge} התראות">${t.badge}</span>`:''}</button>`).join('');
+
+  let contentHtml = '';
+
+  if (v === 'dashboard') contentHtml = renderDashboard(alerts, unpaid);
+  else if (v === 'documents') contentHtml = renderDocuments();
+  else if (v === 'balance') contentHtml = renderBalance();
+  else if (v === 'salary') contentHtml = renderSalary();
+  else if (v === 'unpaid') contentHtml = renderUnpaid(unpaid);
+  else if (v === 'settings') contentHtml = renderSettings();
+
+  $('#app').innerHTML = `
+    <div class="header" role="banner">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:24px">🗄️</span>
+        <div>
+          <div style="font-size:15px;font-weight:700">${State.shared?esc(State.homeName):'הארכיון שלי'}</div>
+          <div style="font-size:10px;color:var(--t2)">${esc(State.user.displayName||State.user.email)}</div>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="padding:8px 14px" onclick="openAddForm()" aria-label="הוספת מסמך חדש">+ חדש</button>
+    </div>
+    <nav class="nav" role="tablist" aria-label="ניווט ראשי">${navHtml}</nav>
+    <div class="content" role="main" style="animation:fadeIn .3s ease">${contentHtml}</div>`;
+
+  // Render charts after DOM is ready
+  setTimeout(() => renderCharts(), 100);
+}
+
+function renderLogin() {
+  $('#app').innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+      <div class="login-box" style="text-align:center">
+        <span style="font-size:52px">🗄️</span>
+        <h1 style="font-size:22px;font-weight:800;margin:8px 0 4px">הארכיון הביתי</h1>
+        <p style="font-size:13px;color:var(--t2);margin-bottom:24px">ניהול מסמכים מאובטח למשפחה</p>
+        <button class="btn btn-primary" style="width:100%;padding:14px;font-size:15px" onclick="doGoogleLogin()" aria-label="התחבר עם Google">
+          🔐 התחבר עם Google
+        </button>
+        <p style="font-size:11px;color:var(--t2);margin-top:16px">ההתחברות מאובטחת דרך Firebase Authentication.<br>הנתונים מוצפנים ומאוחסנים ב-Firestore.</p>
+      </div>
+    </div>`;
+}
+
+function renderDashboard(alerts, unpaid) {
+  const now = new Date();
+  const thisMonthIncome = State.docs.filter(d=>{const dt=d.date?new Date(d.date):null;return dt&&dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear();}).reduce((s,d)=>s+getIncomeAmt(d),0);
+  const thisMonthExpense = State.docs.filter(d=>{const dt=d.date?new Date(d.date):null;return dt&&dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear()&&!isIncome(d);}).reduce((s,d)=>s+getAmt(d),0);
+
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">לוח בקרה</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+      <div class="card stat"><span class="stat-label">📄 מסמכים</span><span class="stat-value">${State.docs.length}</span></div>
+      <div class="card stat"><span class="stat-label" style="color:var(--ok)">↑ הכנסות החודש</span><span class="stat-value" style="color:var(--ok)">${fmtCur(thisMonthIncome)}</span></div>
+      <div class="card stat"><span class="stat-label" style="color:var(--danger)">↓ הוצאות החודש</span><span class="stat-value" style="color:var(--danger)">${fmtCur(thisMonthExpense)}</span></div>
+    </div>
+    ${alerts.length ? `
+      <div class="card" style="background:#FFF8E6;border-color:#F2C94C44;margin-bottom:14px">
+        <div style="font-weight:600;font-size:13px;color:#92600A;margin-bottom:8px">🔔 התראות (${alerts.length})</div>
+        ${alerts.slice(0,6).map(a=>`<div style="padding:3px 0;font-size:12px;color:#7A5209">${a.msg}</div>`).join('')}
+      </div>` : ''}
+    <div class="card" style="padding:16px"><h3 style="font-size:13px;font-weight:600;margin-bottom:8px">מאזן חודשי</h3><canvas id="chartBalance" height="180"></canvas></div>
+    <h3 style="font-size:14px;font-weight:600;margin:14px 0 8px">מסמכים אחרונים</h3>
+    ${State.docs.length===0 ? '<div class="card" style="text-align:center;padding:30px;color:var(--t2)">📂 הארכיון ריק. הוסף מסמך ראשון!</div>' :
+      State.docs.slice(0,5).map(d=>docRowHtml(d)).join('')}`;
+}
+
+function renderDocuments() {
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">מסמכים</h2>
+    <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+      <input class="form-input" style="flex:1;min-width:150px" placeholder="🔍 חיפוש..." oninput="filterDocs(this.value)" aria-label="חיפוש מסמכים">
+      <select class="form-select" style="width:auto" onchange="filterCat(this.value)" aria-label="סינון לפי קטגוריה">
+        <option value="all">כל הקטגוריות</option>
+        ${Object.entries(CATS).map(([id,c])=>`<option value="${id}">${c.icon} ${c.name}</option>`).join('')}
+      </select>
+    </div>
+    <div id="docList" role="list">${State.docs.map(d=>docRowHtml(d)).join('')||'<div class="card" style="text-align:center;padding:30px;color:var(--t2)">לא נמצאו מסמכים</div>'}</div>`;
+}
+
+function renderBalance() {
+  const bal = getBalanceData();
+  if (!bal.length) return '<h2 style="font-size:19px;font-weight:700;margin-bottom:14px">מאזן חודשי</h2><div class="card" style="text-align:center;padding:40px;color:var(--t2)">הוסף מסמכים לצפייה במאזן</div>';
+  const totalInc = bal.reduce((s,m)=>s+m.income,0);
+  const totalExp = bal.reduce((s,m)=>s+m.expense,0);
+  const totalBal = totalInc - totalExp;
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">מאזן חודשי</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="card stat"><span class="stat-label" style="color:var(--ok)">↑ הכנסות</span><span class="stat-value" style="color:var(--ok)">${fmtCur(totalInc)}</span></div>
+      <div class="card stat"><span class="stat-label" style="color:var(--danger)">↓ הוצאות</span><span class="stat-value" style="color:var(--danger)">${fmtCur(totalExp)}</span></div>
+      <div class="card stat"><span class="stat-label">⚖️ מאזן</span><span class="stat-value" style="color:${totalBal>=0?'var(--ok)':'var(--danger)'}">${totalBal>=0?'+':''}${fmtCur(totalBal)}</span></div>
+    </div>
+    <div class="card" style="padding:16px"><h3 style="font-size:13px;font-weight:600;margin-bottom:8px">הכנסות מול הוצאות</h3><canvas id="chartIncExp" height="220"></canvas></div>
+    <div class="card" style="padding:14px;margin-top:10px">
+      <h3 style="font-size:13px;font-weight:600;margin-bottom:8px">פירוט</h3>
+      ${bal.slice().reverse().map(m=>`
+        <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px">
+          <span style="font-weight:600;min-width:55px">${m.label}</span>
+          <span style="color:var(--ok)">↑${fmtCur(m.income)}</span>
+          <span style="color:var(--danger)">↓${fmtCur(m.expense)}</span>
+          <span style="margin-right:auto;font-weight:700;color:${m.balance>=0?'var(--ok)':'var(--danger)'}">${m.balance>=0?'+':''}${fmtCur(m.balance)}</span>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderSalary() {
+  const stats = getSalaryStats();
+  if (!stats.length) return '<h2 style="font-size:19px;font-weight:700;margin-bottom:14px">סטטיסטיקות משכורת</h2><div class="card" style="text-align:center;padding:40px;color:var(--t2)">💰 הוסף תלושי משכורת לצפייה בסטטיסטיקות</div>';
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">סטטיסטיקות משכורת</h2>
+    ${stats.map(ys => `
+      <h3 style="font-size:15px;font-weight:700;color:var(--accent);margin:12px 0">📅 ${ys.year} (${ys.count} תלושים)</h3>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="card stat"><span class="stat-label">ממוצע ברוטו</span><span class="stat-value">${fmtCur(ys.totalGross/ys.count)}</span></div>
+        <div class="card stat"><span class="stat-label" style="color:var(--ok)">ממוצע נטו</span><span class="stat-value" style="color:var(--ok)">${fmtCur(ys.totalNet/ys.count)}</span></div>
+        <div class="card stat"><span class="stat-label">סה״כ נטו</span><span class="stat-value">${fmtCur(ys.totalNet)}</span></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <div class="card stat"><span class="stat-label" style="color:var(--danger)">סה״כ מס</span><span class="stat-value" style="font-size:16px">${fmtCur(ys.totalTax)}</span></div>
+        <div class="card stat"><span class="stat-label">סה״כ פנסיה</span><span class="stat-value" style="font-size:16px">${fmtCur(ys.totalPension)}</span></div>
+        ${ys.totalBonus?`<div class="card stat"><span class="stat-label">בונוסים</span><span class="stat-value" style="font-size:16px">${fmtCur(ys.totalBonus)}</span></div>`:''}
+      </div>
+      <div class="card" style="padding:14px">
+        <h4 style="font-size:12px;font-weight:600;margin-bottom:8px">פירוט חודשי</h4>
+        <div class="salary-detail">
+        ${ys.months.map((m,i)=>`
+          <div class="salary-row" ${i===ys.months.length-1?'style="border-bottom:none"':''}>
+            <span style="font-weight:600;min-width:80px">${m.month?MONTHS_HE[parseInt(m.month.split('-')[1]||'1')-1]+' '+m.month.split('-')[0]:''}</span>
+            <span style="color:var(--t2);min-width:90px">ברוטו: ${fmtCur(m.gross)}</span>
+            <span style="color:var(--ok);font-weight:600;min-width:90px">נטו: ${fmtCur(m.net)}</span>
+            <span style="color:var(--danger);min-width:75px">מס: ${fmtCur(m.tax)}</span>
+            ${m.vacation?`<span style="color:#2D9CDB;min-width:65px">חופשה: ${m.vacation>0?'+':''}${m.vacation}</span>`:''}
+          </div>`).join('')}
+        </div>
+      </div>
+    `).join('')}`;
+}
+
+function renderUnpaid(unpaid) {
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">ממתינים לתשלום</h2>
+    ${unpaid.length===0 ? '<div class="card" style="text-align:center;padding:30px;color:var(--t2)">✅ הכל שולם!</div>' :
+      unpaid.map(d=>docRowHtml(d)).join('')}`;
+}
+
+function renderSettings() {
+  return `
+    <h2 style="font-size:19px;font-weight:700;margin-bottom:14px">הגדרות</h2>
+    <div class="card" style="padding:16px">
+      <div style="font-weight:600;margin-bottom:8px">👤 ${esc(State.user.displayName||State.user.email)}</div>
+      <div style="font-size:12px;color:var(--t2)">${esc(State.user.email)}</div>
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="font-weight:600;margin-bottom:8px">🔑 מפתח Gemini AI</div>
+      <div style="font-size:11px;color:var(--t2);margin-bottom:8px">
+        1. לך ל-<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent)">aistudio.google.com/apikey</a><br>
+        2. לחץ Create API Key → <strong>Create in new project</strong><br>
+        3. הדבק את המפתח כאן
+      </div>
+      <input class="form-input" type="password" id="aiKeyInput" value="${esc(localStorage.getItem('archive-ai-key')||'')}" placeholder="AIzaSy..." aria-label="מפתח Gemini API">
+      <button class="btn btn-secondary" style="margin-top:8px;width:100%" onclick="localStorage.setItem('archive-ai-key',$('#aiKeyInput').value);toast('נשמר!')">שמור מפתח</button>
+      <button class="btn btn-secondary" style="margin-top:4px;width:100%;font-size:11px;color:var(--t2)" onclick="testAiKey()">🧪 בדוק מפתח</button>
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="font-weight:600;margin-bottom:12px">👥 בית משותף</div>
+      ${State.shared ? `
+        <div style="background:var(--accent-l);border-radius:8px;padding:10px;margin-bottom:10px">
+          <div style="font-size:13px">🏠 ${esc(State.homeName)}</div>
+          <div style="font-size:12px;color:var(--t2);margin-top:4px">קוד: <strong style="font-family:monospace;font-size:14px;letter-spacing:1px;color:var(--accent)">${esc(State.homeCode)}</strong>
+          <button style="background:var(--hover);border-radius:5px;padding:3px 8px;font-size:11px;margin-right:8px" onclick="navigator.clipboard?.writeText('${esc(State.homeCode)}');toast('הועתק!')" aria-label="העתק קוד">העתק</button></div>
+        </div>
+        <button class="btn btn-danger" style="width:100%" onclick="leaveSharedHome()">חזור למצב אישי</button>
+      ` : `
+        <div style="font-size:13px;color:var(--t2);margin-bottom:12px">שתף את הארכיון עם בני המשפחה</div>
+        <button class="btn btn-primary" style="width:100%;margin-bottom:10px" onclick="createSharedHome()">🏠 צור בית חדש</button>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" id="joinCodeInput" placeholder="קוד בית (12 תווים)..." style="flex:1" aria-label="קוד הצטרפות">
+          <button class="btn btn-primary" style="width:auto" onclick="joinHome($('#joinCodeInput').value.trim())">הצטרף</button>
+        </div>
+      `}
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="font-weight:600;margin-bottom:6px">🔒 אבטחה</div>
+      <div style="font-size:12px;color:var(--t2);line-height:1.6">
+        ✅ התחברות מאובטחת דרך Google<br>
+        ✅ נתונים מוצפנים ב-Firebase<br>
+        ✅ חוקי אבטחה ברמת משתמש<br>
+        ✅ הגנת XSS (sanitization)<br>
+        ✅ ולידציית קבצים<br>
+        💡 מפתח Gemini נשמר מקומית בלבד
+      </div>
+    </div>
+    <div class="card" style="padding:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-weight:600">📋 גרסה ${APP_VERSION}</div>
+      </div>
+      ${CHANGELOG.map(v=>`
+        <div style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:600;color:var(--accent)">v${v.ver} <span style="color:var(--t2);font-weight:400">(${fmtDate(v.date)})</span></div>
+          <ul style="margin:4px 20px 0 0;padding:0;font-size:11px;color:var(--t2);line-height:1.8">
+            ${v.changes.map(c=>`<li>${esc(c)}</li>`).join('')}
+          </ul>
+        </div>`).join('')}
+    </div>
+    <button class="btn btn-danger" style="width:100%;margin-top:10px" onclick="doLogout()">🚪 התנתק</button>`;
+}
+
+function docRowHtml(d) {
+  const c = CATS[d.category]||CATS.other;
+  const f = d.fields||{};
+  const amt = getAmt(d);
+  const details = [f.employer,f.periodMonth,f.productName,f.insurer,f.provider,f.providerName,f.contractType,f.institution].filter(Boolean).slice(0,2);
+  const payHtml = f.paid ? `<span class="badge" style="background:${f.paid==='paid'?'var(--ok)':f.paid==='overdue'?'var(--danger)':'var(--warn)'}18;color:${f.paid==='paid'?'var(--ok)':f.paid==='overdue'?'var(--danger)':'var(--warn)'}">${f.paid==='paid'?'שולם ✅':f.paid==='overdue'?'באיחור 🔴':'ממתין ⏳'}</span>` : '';
+  return `
+    <div class="doc-row" role="listitem">
+      <div class="doc-icon" style="background:${c.color}12">${c.icon}</div>
+      <div class="doc-info">
+        <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+          <span class="doc-title">${esc(d.name)}</span>
+          <span class="badge" style="background:${c.color}16;color:${c.color}">${esc(c.name)}</span>
+          ${payHtml}
+        </div>
+        <div class="doc-meta">
+          ${d.date?`<span>📅 ${fmtDate(d.date)}</span>`:''}
+          ${amt?`<span>${fmtCur(amt)}</span>`:''}
+          ${details.map(x=>`<span>${esc(x)}</span>`).join('')}
+          ${d.addedBy?`<span style="opacity:.6">ע״י ${esc(d.addedBy)}</span>`:''}
+        </div>
+      </div>
+      <div class="doc-actions">
+        <button onclick="openEditForm('${d.id}')" aria-label="עריכת ${esc(d.name)}">✏️</button>
+        <button onclick="confirmDelete('${d.id}')" style="color:var(--danger)" aria-label="מחיקת ${esc(d.name)}">🗑️</button>
+      </div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════
+// CHARTS
+// ═══════════════════════════════════════════
+let chartInstances = {};
+
+function renderCharts() {
+  Object.values(chartInstances).forEach(c => c.destroy());
+  chartInstances = {};
+
+  const balCanvas = document.getElementById('chartBalance');
+  if (balCanvas) {
+    const bal = getBalanceData();
+    if (bal.length) {
+      chartInstances.bal = new Chart(balCanvas, {
+        type:'bar',
+        data:{labels:bal.map(m=>m.label),datasets:[
+          {label:'הכנסות',data:bal.map(m=>m.income),backgroundColor:'#1E8E5488',borderRadius:4},
+          {label:'הוצאות',data:bal.map(m=>m.expense),backgroundColor:'#D9444488',borderRadius:4},
+        ]},
+        options:{responsive:true,plugins:{legend:{labels:{font:{family:'Rubik'}}}},scales:{y:{beginAtZero:true}}}
+      });
+    }
+  }
+
+  const ieCanvas = document.getElementById('chartIncExp');
+  if (ieCanvas) {
+    const bal = getBalanceData();
+    if (bal.length) {
+      chartInstances.ie = new Chart(ieCanvas, {
+        type:'bar',
+        data:{labels:bal.map(m=>m.label),datasets:[
+          {label:'הכנסות',data:bal.map(m=>m.income),backgroundColor:'#1E8E54',borderRadius:4},
+          {label:'הוצאות',data:bal.map(m=>m.expense),backgroundColor:'#D94444',borderRadius:4},
+        ]},
+        options:{responsive:true,plugins:{legend:{labels:{font:{family:'Rubik'}}}},scales:{y:{beginAtZero:true}}}
+      });
+    }
+  }
+}
+
+// ═══════════════════════════════════════════
+// FORM MODAL
+// ═══════════════════════════════════════════
+let formState = { editing: null, file: null };
+
+function openAddForm() {
+  formState = { editing: null, file: null };
+  showFormModal({ name:'', category:'other', date:new Date().toISOString().split('T')[0], notes:'', fields:{} });
+}
+
+function openEditForm(id) {
+  const doc = State.docs.find(d=>d.id===id);
+  if (!doc) return;
+  formState = { editing: doc, file: null };
+  showFormModal({ name:doc.name, category:doc.category, date:doc.date||'', notes:doc.notes||'', fields:{...doc.fields||{}} });
+}
+
+function showFormModal(data) {
+  const catOptions = Object.entries(CATS).map(([id,c])=>`<option value="${id}" ${data.category===id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.onclick = e => { if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML = `
+    <div class="modal" role="dialog" aria-modal="true" aria-label="${formState.editing?'עריכת מסמך':'מסמך חדש'}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700">${formState.editing?'עריכת מסמך':'מסמך חדש'}</h3>
+        <button style="background:var(--hover);border-radius:7px;padding:5px" onclick="this.closest('.modal-overlay').remove()">✕</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <!-- File Upload -->
+        <div>
+          <span class="form-label">📎 צרף מסמך (PDF / תמונה / צילום)</span>
+          <div class="upload-area" id="uploadArea">
+            <div class="upload-btn" style="border:2px dashed var(--accent)40;border-radius:11px">
+              <input type="file" accept="image/*" capture="environment" onchange="handleFileUpload(this)">
+              <div class="upload-btn-inner" style="background:var(--accent-l)">
+                <span style="font-size:22px">📸</span>
+                <span style="font-size:12px;font-weight:600;color:var(--accent)">צלם מסמך</span>
+              </div>
+            </div>
+            <div class="upload-btn" style="border:2px dashed var(--border);border-radius:11px">
+              <input type="file" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
+              <div class="upload-btn-inner" style="background:var(--input)">
+                <span style="font-size:22px">📄</span>
+                <span style="font-size:12px;font-weight:500;color:var(--t2)">PDF / תמונה</span>
+              </div>
+            </div>
+          </div>
+          <div id="filePreview" style="display:none;margin-top:8px"></div>
+        </div>
+
+        <!-- AI Scan -->
+        <button class="btn" id="aiScanBtn" style="display:none;padding:12px;font-size:14px;background:linear-gradient(135deg,#7C3AED,#2E7D68);color:#fff" onclick="doAiFullScan()">
+          ✨ סרוק מסמך — זהה וחלץ נתונים
+        </button>
+        <div id="aiStatus" style="display:none;text-align:center;padding:10px;color:var(--accent);font-size:13px">⏳ קורא מסמך...</div>
+
+        <div><span class="form-label">שם המסמך *</span><input class="form-input" id="fName" value="${data.name}" placeholder='לדוגמה: "תלוש ינואר 2025"'></div>
+        <div>
+          <span class="form-label">קטגוריה</span>
+          <div style="display:flex;gap:7px">
+            <select class="form-select" id="fCat" onchange="updateCatFields()">${catOptions}</select>
+            <button class="btn btn-secondary" style="white-space:nowrap;font-size:11px;padding:7px 12px" onclick="doAiCategorize()">✨ זהה</button>
+          </div>
+          <div id="aiCatResult" style="display:none;margin-top:5px;font-size:11px;color:var(--accent);background:var(--accent-l);padding:5px 9px;border-radius:7px"></div>
+        </div>
+        <div><span class="form-label">תאריך</span><input class="form-input" type="date" id="fDate" value="${data.date}"></div>
+        <div><span class="form-label">הערות</span><textarea class="form-input" id="fNotes" rows="2" placeholder="הערות או תוכן מהמסמך...">${data.notes}</textarea></div>
+        <button class="btn btn-secondary" style="background:#EDE9FE;color:#7C3AED" onclick="doAiExtract()">✨ חלץ נתונים</button>
+        <div id="catFields" style="background:var(--input);border-radius:11px;padding:14px;border:1px solid var(--border)"></div>
+        <button class="btn btn-primary" style="padding:12px;font-size:14px" onclick="doSaveForm()">💾 ${formState.editing?'שמור שינויים':'הוסף לארכיון'}</button>
+      </div>
+    </div>`;
+
+  document.body.appendChild(overlay);
+  updateCatFields(data.fields);
+}
+
+function updateCatFields(prefill) {
+  const cat = CATS[$('#fCat')?.value || 'other'];
+  if (!cat) return;
+  const fields = prefill || formState.editing?.fields || {};
+  const el = $('#catFields');
+  if (!el) return;
+  el.innerHTML = `<div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:10px">${cat.icon} שדות ${cat.name}</div>` +
+    cat.fields.map(f => {
+      if (f.t === 'pay') return `
+        <div style="margin-bottom:8px"><span class="form-label">${f.l}</span>
+        <div class="pay-btns">
+          <button class="pay-btn ${fields[f.k]==='paid'?'active-paid':''}" onclick="setPayField('${f.k}','paid',this)">שולם ✅</button>
+          <button class="pay-btn ${fields[f.k]==='pending'?'active-pending':''}" onclick="setPayField('${f.k}','pending',this)">ממתין ⏳</button>
+          <button class="pay-btn ${fields[f.k]==='overdue'?'active-overdue':''}" onclick="setPayField('${f.k}','overdue',this)">באיחור 🔴</button>
+        </div></div>`;
+      if (f.t === 'select') return `
+        <div style="margin-bottom:8px"><span class="form-label">${f.l}</span>
+        <select class="form-select" data-field="${f.k}"><option value="">— בחר —</option>${f.opts.map(o=>`<option ${fields[f.k]===o?'selected':''}>${o}</option>`).join('')}</select></div>`;
+      const type = f.t==='num'?'number':f.t==='date'?'date':f.t==='month'?'month':'text';
+      return `<div style="margin-bottom:8px"><span class="form-label">${f.l}</span><input class="form-input" type="${type}" data-field="${f.k}" value="${fields[f.k]||''}" ${f.t==='num'?'step="0.01"':''}></div>`;
+    }).join('');
+}
+
+function setPayField(key, value, btn) {
+  btn.closest('.pay-btns').querySelectorAll('.pay-btn').forEach(b=>{b.className='pay-btn';});
+  btn.className = `pay-btn active-${value}`;
+  btn.dataset.payValue = value;
+}
+
+function getFormFields() {
+  const fields = {};
+  $$('#catFields [data-field]').forEach(el => { if(el.value) fields[el.dataset.field]=el.value; });
+  $$('#catFields .pay-btns').forEach(div => {
+    const active = div.querySelector('.pay-btn[class*="active-"]');
+    if (active) {
+      const cls = [...active.classList].find(c=>c.startsWith('active-'));
+      if (cls) fields[active.closest('[style]')?.querySelector('.pay-btn')?.dataset?.payValue || cls.replace('active-','')] = cls.replace('active-','');
+      // Fix: get key from button
+      const firstBtn = div.querySelector('.pay-btn');
+      if (firstBtn) {
+        const key = firstBtn.getAttribute('onclick')?.match(/setPayField\('(\w+)'/)?.[1];
+        if (key && cls) fields[key] = cls.replace('active-','');
+      }
+    }
+  });
+  return fields;
+}
+
+async function handleFileUpload(input) {
+  const file = input.files[0];
+  const err = validateFile(file);
+  if (err) { toast(err, true); input.value=''; return; }
+  const b64 = await fileToBase64(file);
+  formState.file = { b64, type: file.type, name: file.name, size: file.size };
+  const preview = $('#filePreview');
+  if (preview) {
+    preview.style.display = 'block';
+    preview.innerHTML = `<div class="card" style="display:flex;align-items:center;gap:10px;padding:10px">
+      ${file.type.startsWith('image/')?`<img src="data:${file.type};base64,${b64}" style="width:50px;height:50px;border-radius:8px;object-fit:cover">`:`<span style="font-size:28px">📄</span>`}
+      <div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(file.name)}</div><div style="font-size:11px;color:var(--t2)">${(file.size/1024).toFixed(0)} KB</div></div>
+      <button style="background:var(--hover);border-radius:7px;padding:4px" onclick="clearFile()">✕</button>
+    </div>`;
+  }
+  const scanBtn = $('#aiScanBtn');
+  if (scanBtn) scanBtn.style.display = 'flex';
+  const uploadArea = $('#uploadArea');
+  if (uploadArea) uploadArea.style.display = 'none';
+}
+
+function clearFile() {
+  formState.file = null;
+  const preview = $('#filePreview'); if(preview){preview.style.display='none';preview.innerHTML='';}
+  const scanBtn = $('#aiScanBtn'); if(scanBtn) scanBtn.style.display='none';
+  const uploadArea = $('#uploadArea'); if(uploadArea) uploadArea.style.display='flex';
+}
+
+async function doAiFullScan() {
+  showLoading('🤖 קורא את המסמך...');
+  const scanBtn = $('#aiScanBtn'); if(scanBtn) scanBtn.style.display='none';
+  const name = $('#fName')?.value || formState.file?.name || '';
+  const notes = $('#fNotes')?.value || '';
+  // Categorize
+  const catR = await aiCategorize(name, notes, formState.file);
+  if (catR) {
+    $('#fCat').value = catR.category;
+    updateCatFields();
+    const cr = $('#aiCatResult'); if(cr){cr.style.display='block';cr.textContent=`✨ ${CATS[catR.category]?.name} — ${catR.reason}`;}
+    // Extract
+    const extR = await aiExtract(catR.category, name, notes, formState.file);
+    if (extR) {
+      Object.entries(extR).forEach(([k,v]) => {
+        if(v==null) return;
+        const el = document.querySelector(`[data-field="${k}"]`);
+        if(el) el.value = String(v);
+      });
+      if(!$('#fName').value && formState.file) $('#fName').value = formState.file.name.replace(/\.[^.]+$/,'');
+      toast('נסרק בהצלחה ✨');
+    }
+  }
+  hideLoading();
+}
+
+async function doAiCategorize() {
+  const name = $('#fName')?.value; const notes = $('#fNotes')?.value;
+  if(!name && !formState.file) return;
+  showLoading('✨ מזהה קטגוריה...');
+  const r = await aiCategorize(name||formState.file?.name||'', notes, formState.file);
+  hideLoading();
+  if(r){$('#fCat').value=r.category;updateCatFields();const cr=$('#aiCatResult');if(cr){cr.style.display='block';cr.textContent=`✨ ${CATS[r.category]?.name} — ${r.reason}`;}}
+}
+
+async function doAiExtract() {
+  const name=$('#fName')?.value;const notes=$('#fNotes')?.value;const cat=$('#fCat')?.value;
+  if(!name&&!formState.file) return;
+  showLoading('🤖 מחלץ נתונים...');
+  const r = await aiExtract(cat, name||formState.file?.name||'', notes, formState.file);
+  hideLoading();
+  if(r){Object.entries(r).forEach(([k,v])=>{if(v==null)return;const el=document.querySelector(`[data-field="${k}"]`);if(el)el.value=String(v);});toast('נתונים חולצו ✨');}
+  else toast('לא הצלחתי לחלץ',true);
+}
+
+async function doSaveForm() {
+  const name = $('#fName')?.value?.trim();
+  if (!name) { toast('יש להזין שם מסמך',true); $('#fName')?.focus(); return; }
+  // Fix 8: Validate fields
+  const fields = getFormFields();
+  const cat = CATS[$('#fCat')?.value||'other'];
+  if (cat) {
+    for (const f of cat.fields) {
+      if (f.t === 'num' && fields[f.k]) {
+        const val = Number(fields[f.k]);
+        if (isNaN(val) || val < 0) { toast(`${f.l}: ערך לא תקין`,true); return; }
+      }
+    }
+  }
+  showLoading('💾 שומר...');
+  const doc = {
+    name,
+    category: $('#fCat')?.value || 'other',
+    date: $('#fDate')?.value || null,
+    notes: $('#fNotes')?.value?.trim() || null,
+    fields,
+    addedBy: State.user.displayName || State.user.email,
+  };
+  if (formState.editing) {
+    doc.id = formState.editing.id;
+    doc.createdAt = formState.editing.createdAt;
+  }
+  await saveDoc(doc);
+  hideLoading();
+  document.querySelector('.modal-overlay')?.remove();
+  toast(formState.editing ? 'עודכן' : 'נוסף לארכיון');
+}
+
+function confirmDelete(id) {
+  const doc = State.docs.find(d=>d.id===id);
+  if (confirm(`למחוק את "${doc?.name}"?`)) {
+    softDelete(id);
+  }
+}
+
+// Fix 4: Loading overlay
+function showLoading(msg='טוען...') {
+  hideLoading();
+  const el=document.createElement('div');el.className='loading-overlay';el.id='loadingOverlay';
+  el.innerHTML=`<div class="loading-box"><div class="loading-spinner"></div><div style="font-size:13px;color:var(--t1)">${esc(msg)}</div></div>`;
+  document.body.appendChild(el);
+}
+function hideLoading() { document.getElementById('loadingOverlay')?.remove(); }
+
+// Fix 5: Modal ESC close + keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const overlay = document.querySelector('.modal-overlay');
+    if (overlay) overlay.remove();
+  }
+});
+
+// ═══════════════════════════════════════════
+// FILTER
+// ═══════════════════════════════════════════
+function filterDocs(term) {
+  const list = $('#docList');
+  if (!list) return;
+  const filtered = State.docs.filter(d => {
+    if (!term) return true;
+    return d.name.includes(term) || (d.notes||'').includes(term) || Object.values(d.fields||{}).join(' ').includes(term);
+  });
+  list.innerHTML = filtered.map(d=>docRowHtml(d)).join('') || '<div class="card" style="text-align:center;padding:30px;color:var(--t2)">לא נמצאו</div>';
+}
+
+function filterCat(cat) {
+  const list = $('#docList');
+  if (!list) return;
+  const filtered = cat==='all' ? State.docs : State.docs.filter(d=>d.category===cat);
+  list.innerHTML = filtered.map(d=>docRowHtml(d)).join('') || '<div class="card" style="text-align:center;padding:30px;color:var(--t2)">לא נמצאו</div>';
+}
+
+// ═══════════════════════════════════════════
+// NAV & AUTH
+// ═══════════════════════════════════════════
+function showView(v) { State.view = v; render(); }
+
+async function doGoogleLogin() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    const result = await auth.signInWithPopup(provider);
+    console.log('Login success:', result.user.email);
+  } catch(e) {
+    console.error('Login error:', e.code, e.message);
+    if (e.code === 'auth/popup-blocked' || e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+      toast('חלון ההתחברות נחסם. נסה שוב או אפשר popups', true);
+    } else {
+      toast('שגיאה: ' + (e.message || 'נסה שוב'), true);
+    }
+  }
+}
+
+function doLogout() { auth.signOut(); }
+
+// Auth state listener
+auth.onAuthStateChanged(async user => {
+  console.log('Auth state changed:', user ? user.email : 'logged out');
+  if (user) {
+    State.user = user;
+    try {
+      await loadUserHome();
+    } catch(e) {
+      console.error('loadUserHome error:', e);
+    }
+    render();
+  } else {
+    State.user = null;
+    State.docs = [];
+    State.shared = false;
+    if (State.unsubDocs) { State.unsubDocs(); State.unsubDocs = null; }
+    render();
+  }
+});
+
+// Show loading until auth resolves
+$('#app').innerHTML = '<div style="min-height:100vh;display:flex;align-items:center;justify-content:center"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;margin:0 auto 12px"></div><div style="color:var(--t2);font-size:14px">מתחבר...</div></div></div>';
+
+// PWA
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
